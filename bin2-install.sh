@@ -101,16 +101,17 @@ main() {
 	echo "Downloading Tailscale ${VERSION} userspace binaries..."
 	download "$archive"
 	tar -xzf "$archive" -C "$temporary_directory"
-	binary_directory="$temporary_directory/tailscale_${VERSION}_${ARCH}"
+	tailscale_binary="$(find "$temporary_directory" -type f -name tailscale -print -quit)"
+	tailscaled_binary="$(find "$temporary_directory" -type f -name tailscaled -print -quit)"
 
-	if [ ! -x "$binary_directory/tailscale" ] || [ ! -x "$binary_directory/tailscaled" ]; then
+	if [ -z "$tailscale_binary" ] || [ -z "$tailscaled_binary" ]; then
 		echo "Downloaded archive does not contain the expected Tailscale binaries." >&2
 		exit 1
 	fi
 
 	mkdir -p "$BIN_DIR" "$BASE_DIR"
-	install -m 0755 "$binary_directory/tailscale" "$BIN_DIR/tailscale"
-	install -m 0755 "$binary_directory/tailscaled" "$BIN_DIR/tailscaled"
+	install -m 0755 "$tailscale_binary" "$BIN_DIR/tailscale"
+	install -m 0755 "$tailscaled_binary" "$BIN_DIR/tailscaled"
 
 	if install_user_service; then
 		echo "Tailscaled user service is running."
