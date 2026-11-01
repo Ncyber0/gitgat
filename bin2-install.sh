@@ -25,10 +25,16 @@ if [ -z "${HOME-}" ] || [ ! -d "$HOME" ]; then
 fi
 
 export HOME
+case "$HOME" in
+	/) ;;
+	*) HOME="${HOME%/}" ;;
+esac
+
 BASE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/tailscale"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 SOCKET="$BASE_DIR/tailscaled.sock"
 STATE="$BASE_DIR/tailscaled.state"
+SOCKS5_SERVER="127.0.0.1:1055"
 SERVICE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 SERVICE_FILE="$SERVICE_DIR/tailscaled.service"
 
@@ -57,7 +63,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=$BIN_DIR/tailscaled --tun=userspace-networking --state=$STATE --socket=$SOCKET
+ExecStart=$BIN_DIR/tailscaled --tun=userspace-networking --socks5-server=$SOCKS5_SERVER --state=$STATE --socket=$SOCKET
 Restart=on-failure
 
 [Install]
@@ -117,11 +123,12 @@ main() {
 		echo "Tailscaled user service is running."
 	else
 		echo "A systemd user session was not detected. Start the daemon manually with:"
-		echo "  $BIN_DIR/tailscaled --tun=userspace-networking --state=$STATE --socket=$SOCKET &"
+		echo "  $BIN_DIR/tailscaled --tun=userspace-networking --socks5-server=$SOCKS5_SERVER --state=$STATE --socket=$SOCKET &"
 	fi
 
 	echo "Connect this user account with:"
 	echo "  $BIN_DIR/tailscale --socket=$SOCKET up"
+	echo "Applications can use the Tailscale network through SOCKS5 at $SOCKS5_SERVER."
 	echo "Add $BIN_DIR to PATH to run 'tailscale' without its full path."
 }
 
