@@ -34,7 +34,9 @@ BASE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/tailscale"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 SOCKET="$BASE_DIR/tailscaled.sock"
 STATE="$BASE_DIR/tailscaled.state"
-SOCKS5_SERVER="127.0.0.1:1055"
+# Some managed hosts raise the unprivileged-port threshold above 1024.
+# A high loopback-only port avoids that policy without exposing the proxy.
+SOCKS5_SERVER="${SOCKS5_SERVER:-127.0.0.1:18080}"
 SERVICE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 SERVICE_FILE="$SERVICE_DIR/tailscaled.service"
 
@@ -129,6 +131,7 @@ main() {
 	echo "Connect this user account with:"
 	echo "  $BIN_DIR/tailscale --socket=$SOCKET up"
 	echo "Applications can use the Tailscale network through SOCKS5 at $SOCKS5_SERVER."
+	echo "Set SOCKS5_SERVER=127.0.0.1:PORT before installation to choose another loopback port."
 	echo "Add $BIN_DIR to PATH to run 'tailscale' without its full path."
 }
 
